@@ -1,0 +1,1285 @@
+<!DOCTYPE html>
+<html lang="tr" data-theme="light" data-arena-color="cream">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#0284c7" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="2X Okuma" />
+  <title>2X Hızlı Okuma Eğitimi</title>
+  <link rel="icon" type="image/png" href="2x.png" />
+  <link rel="apple-touch-icon" href="2x.png" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="stylesheet" href="style.css" />
+  <!-- RESMİ GOOGLE / MICROSOFT / FACEBOOK FIREBASE AUTH SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+</head>
+<body data-auth="guest" oncontextmenu="return false;" onselectstart="return false;" ondragstart="return false;">
+
+  <!-- GÜVENLİK KALKANI -->
+  <div class="security-lock-overlay" id="securityLockOverlay">
+    <div class="security-lock-box">
+      <div style="font-size:3rem; margin-bottom:0.5rem;">🔒</div>
+      <h2>Güvenlik Kalkanı Aktif</h2>
+      <p>Bu uygulamanın kaynak kodları ve içeriği <strong>Serhat Nehir — 2X Hızlı Okuma Eğitimi</strong> telif hakları kapsamında korunmaktadır. Devam etmek için lütfen geliştirici araçlarını kapatın.</p>
+      <button type="button" class="btn btn-primary" style="margin-top:1rem; justify-content:center;" onclick="recheckSecurityShield()">🔄 Devam Et / Yeniden Kontrol Et</button>
+    </div>
+  </div>
+
+  <!-- ÜST BAR -->
+  <header class="topbar">
+    <div class="brand-wrap" onclick="onBrandLogoClick()" title="2X Hızlı Okuma Eğitimi">
+      <img src="2x.png" alt="2X Logo" class="brand-logo-img" onerror="this.style.opacity='0.3'" />
+      <div class="brand-title">
+        <h1>2X Hızlı Okuma Eğitimi</h1>
+      </div>
+    </div>
+
+    <div class="top-controls">
+      <button type="button" class="btn guest-test-only-el" id="backToHomeFromGuestTestBtn" style="display:none;" onclick="exitGuestTestToHome()">🏠 Ana Sayfaya Dön</button>
+
+      <div class="stat-pill auth-only-el" id="topStagePill">
+        <span>Aşama:</span>
+        <span class="val" id="topCurrentStageTxt">1 / 30</span>
+      </div>
+      <div class="stat-pill auth-only-el" id="topWpmPill">
+        <span>Hız:</span>
+        <span class="val" id="topCurrentWpmTxt">120 WPM</span>
+      </div>
+      <div class="stat-pill auth-only-el" id="topClassPill">
+        <span>Sınıf:</span>
+        <span class="val" id="topCurrentClassTxt">Çok Yavaş</span>
+      </div>
+
+      <button type="button" class="btn auth-only-el" id="audioToggleBtn" onclick="toggleAudio()" title="Metronom Sesini Aç/Kapat">🔊</button>
+      <button type="button" class="btn btn-warning auth-only-el" id="palmingTopBtn" onclick="openPalmingModal()" title="Göz Dinlendirme Molası">👁️ Palming (30sn)</button>
+      <button type="button" class="btn btn-success" id="installPwaBtn" style="display:none;" onclick="installMobileApp()">📲 Uygulamayı Yükle</button>
+
+      <div class="top-auth-wrap" id="topAuthWrap">
+        <button type="button" class="btn btn-primary" id="topLoginBtn" onclick="openLoginModal()">🔑 Giriş Yap</button>
+
+        <div class="user-profile-pill" id="userProfileWidget" style="display:none;" onclick="toggleUserDropdown(event)">
+          <div class="gender-avatar male" id="topUserGenderLogo"></div>
+          <span class="user-name-txt" id="topUserNameTxt">Ad Soyad</span>
+        </div>
+
+        <!-- KULLANICI VE AYARLAR MENÜSÜ -->
+        <div class="user-dropdown-menu" id="userDropdownMenu" onclick="event.stopPropagation()">
+          <!-- 1. PROFİLİM -->
+          <button type="button" class="stage-item profile-btn" onclick="openProfileModal()">
+            <div class="stage-left">
+              <span class="stage-title">👤 Profilim</span>
+              <span class="stage-meta">Kişisel Bilgilerim, E-Posta ve Şifre</span>
+            </div>
+            <span class="stage-status-badge">Düzenle</span>
+          </button>
+
+          <!-- 2. HEDEF BELİRLE -->
+          <button type="button" class="stage-item goal-btn" onclick="openGoalModal()">
+            <div class="stage-left">
+              <span class="stage-title">🎯 Hedef Belirle</span>
+              <span class="stage-meta" id="dropdownGoalMeta">Okuma hızı hedefini belirle</span>
+            </div>
+            <span class="stage-status-badge">Ayarla</span>
+          </button>
+
+          <!-- 3. GELİŞİMİMİ TAKİP ET -->
+          <button type="button" class="stage-item progress-btn" onclick="openProgressModal()">
+            <div class="stage-left">
+              <span class="stage-title">📈 Gelişimimi Takip Et</span>
+              <span class="stage-meta">İstatistikler & Sıfırlama</span>
+            </div>
+            <span class="stage-status-badge">Detay</span>
+          </button>
+
+          <!-- 4. GÖRÜNÜM AYARLARI -->
+          <button type="button" class="stage-item appearance-btn" onclick="openAppearanceModal()">
+            <div class="stage-left">
+              <span class="stage-title">🎨 Görünüm Ayarları</span>
+              <span class="stage-meta">Boyut, Tema & Alıştırma Ekranı Rengi</span>
+            </div>
+            <span class="stage-status-badge">Ayarla</span>
+          </button>
+
+          <!-- 5. SAYFA AYARLARI -->
+          <button type="button" class="stage-item palming-btn" onclick="openPageSettingsModal()">
+            <div class="stage-left">
+              <span class="stage-title">📖 Sayfa Ayarları</span>
+              <span class="stage-meta" id="dropdownPalmingMeta">Sayfa Geçiş Efekti, Ses & Palming (30 sn)</span>
+            </div>
+            <span class="stage-status-badge">Ayarla</span>
+          </button>
+
+          <!-- 6. BAŞARI SERTİFİKASI -->
+          <button type="button" class="stage-item cert-btn locked" id="dropdownCertBtn" onclick="handleCertificateClick()">
+            <div class="stage-left">
+              <span class="stage-title" id="dropdownCertTitle">🎓 Başarı Sertifikası</span>
+              <span class="stage-meta" id="dropdownCertMeta">1. Sınıflandırma (3. Aşama) Bitince Açılır</span>
+            </div>
+            <span class="stage-status-badge" id="dropdownCertBadge">🔒 Kilitli</span>
+          </button>
+
+          <!-- 6B. METİN EKLE VE YÖNET (SADECE ADMİN GİRİŞİ YAPILINCA GÖRÜNÜR) -->
+          <button type="button" class="stage-item text-mgr-btn" id="adminTextMgrDropdownBtn" style="display:none !important;" onclick="openTextManagerModal()">
+            <div class="stage-left">
+              <span class="stage-title">📚 Metin Ekle & Yönet</span>
+              <span class="stage-meta" id="dropdownTextMgrMeta">Metin Ekle & Metin Düzenle</span>
+            </div>
+            <span class="stage-status-badge">Admin</span>
+          </button>
+
+          <!-- 7. VERİTABANI YÖNETİMİ (SADECE ADMİN ŞİFRESİ GİRİLİNCE GÖRÜNÜR) -->
+          <button type="button" class="stage-item db-btn" id="adminDbDropdownBtn" style="display:none !important;" onclick="openDatabaseModal()">
+            <div class="stage-left">
+              <span class="stage-title">🗄️ Veritabanı Yönetimi (Admin)</span>
+              <span class="stage-meta">Firebase Bulut & Tüm Kullanıcılar</span>
+            </div>
+            <span class="stage-status-badge">Admin</span>
+          </button>
+
+          <!-- 8. ÇIKIŞ YAP -->
+          <button type="button" class="btn btn-danger" style="width:100%; justify-content:center; padding:0.55rem; margin-top:0.2rem;" onclick="logoutUser()">🚪 Çıkış Yap</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- 1. GÖRÜNÜM: ANA SAYFA (OTURUM AÇILMADAN ÖNCE GÖRÜNÜR) -->
+  <section class="home-page-view" id="homePageView">
+    <div class="hizligo-hero">
+      <div class="hizligo-hero-content">
+        <h2>Okuma Hızınızı <span class="text-gradient">2 Katına</span> Çıkarın, Anlama Oranınızı Zirveye Taşıyın!</h2>
+        <p>
+          Göz kaslarınızı esneten, satır başı-sonu sekmelerini hızlandıran ve metinleri <strong>vurgulu ikili/üçlü bloklar</strong> halinde fotoğraflatan <strong>30 aşamalı bilimsel antrenman sistemiyle</strong> okuma hızınızı kalıcı olarak katlayın.
+        </p>
+        <div class="hero-cta-group">
+          <button type="button" class="btn btn-primary hero-main-btn" id="homeActionBtn" onclick="startGuestOrUserSpeedTest()">
+            🚀 Okuma ve Anlama Seviyeni Ölç
+          </button>
+          <button type="button" class="btn btn-success hero-main-btn" onclick="openPurchaseModal('card')">
+            💳 Eğitimi Satın Al — 1.900 ₺
+          </button>
+          <a href="#pricingSection" class="btn hero-sec-btn">
+            🏷️ Paket & Fiyat Bilgisi
+          </a>
+          <a href="#videoEducationSection" class="btn hero-sec-btn">
+            🎬 Eğitim Videoları
+          </a>
+        </div>
+        <div class="hero-trust-row">
+          <span>✔️ 30 Kademeli Aşama</span>
+          <span>✔️ 13 İnteraktif Göz & Blok Egzersizi</span>
+          <span>✔️ 5 Soruluk Anlama Ölçümü</span>
+          <span>✔️ Kademeli Sınıflandırma Sertifikası</span>
+        </div>
+      </div>
+
+      <div class="hizligo-hero-metrics">
+        <div class="hero-stat-box"><div class="h-stat-icon">🚀</div><div class="h-stat-num">2X – 4X</div><div class="h-stat-lbl">Okuma Hızı Artışı</div></div>
+        <div class="hero-stat-box"><div class="h-stat-icon">🎯</div><div class="h-stat-num">%85+</div><div class="h-stat-lbl">Odaklanma ve Anlama</div></div>
+        <div class="hero-stat-box"><div class="h-stat-icon">⏱️</div><div class="h-stat-num">15 Dk</div><div class="h-stat-lbl">Günlük Egzersiz Süresi</div></div>
+        <div class="hero-stat-box"><div class="h-stat-icon">🎓</div><div class="h-stat-num">30 Aşama</div><div class="h-stat-lbl">120'den 1000 WPM'e</div></div>
+      </div>
+    </div>
+
+    <div class="hizligo-section">
+      <div class="section-head">
+        <span>BİLİMSEL METODOLOJİ</span>
+        <h3>Neden 2X Hızlı Okuma Sistemi?</h3>
+        <p>Klasik okuma alışkanlıklarını geride bırakıp göz ve beyin koordinasyonunuzu yeniden programlıyoruz.</p>
+      </div>
+      <div class="features-grid-4">
+        <div class="feature-card">
+          <div class="f-icon">👀</div>
+          <h4>Okülomotor & Satır Sekme</h4>
+          <p>Karışık Sarkaç, Sonsuzluk, Zikzak ve Satır Başı-Sonu Sekme egzersizleriyle satır geçiş kayıplarını sıfırlar.</p>
+        </div>
+        <div class="feature-card">
+          <div class="f-icon">🔢</div>
+          <h4>Periferik Görme Alanı</h4>
+          <p>Genişleyen Kare, Genişleyen Yuvarlak, Schulte ve Kelime Açılımı ile tek noktaya bakarken çevredeki kelimeleri net algılamanızı sağlar.</p>
+        </div>
+        <div class="feature-card">
+          <div class="f-icon">⚡</div>
+          <h4>İkili ve Üçlü Blok Okuma</h4>
+          <p>Başlangıçta ikili kelime blokları, zorluk ilerledikçe üçlü kelime blokları vurgusuyla iç seslendirmeyi kapatır.</p>
+        </div>
+        <div class="feature-card">
+          <div class="f-icon">📈</div>
+          <h4>Hız + Anlama Testi & Sertifika</h4>
+          <p>5 soruluk kavrama testiyle WPM hızınızı ölçer, tamamladığınız her Okuma Hızı Sınıflandırması için güncel Başarı Sertifikası üretir.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="hizligo-section">
+      <div class="section-head">
+        <span>ADIM ADIM GELİŞİM</span>
+        <h3>Sistem Nasıl Çalışır?</h3>
+      </div>
+      <div class="steps-grid-4">
+        <div class="step-card"><span class="step-num">1</span><h4>Okuma & Anlama Testi</h4><p>Üye olmadan da metni okuyup 5 soruyu yanıtlayarak WPM hızınızı ve anlama yüzdesini ölçün.</p></div>
+        <div class="step-card"><span class="step-num">2</span><h4>Video Dersleri İzle</h4><p>Hızlı okumanın mantığını, bloklamayı ve göz sağlığı ilkelerini uzman videolarından öğrenin.</p></div>
+        <div class="step-card"><span class="step-num">3</span><h4>13 Egzersiz & Sınıf Testleri</h4><p>Her aşamada 13 göz ve blok antrenmanını tamamlayın; her sınıfın sonunda Sınıf Geçiş Testini başararak üst sınıfa geçin.</p></div>
+        <div class="step-card"><span class="step-num">4</span><h4>2X Hıza ve Sertifikaya Ulaş</h4><p>Okuma hızı sınıflandırmalarını tamamladıkça yükselen Başarı Sertifikanızı indirin.</p></div>
+      </div>
+    </div>
+
+    <!-- FİYATLANDIRMA VE SATIN ALMA SEÇENEKLERİ BÖLÜMÜ (1.900 TL) -->
+    <div class="hizligo-section" id="pricingSection">
+      <div class="section-head">
+        <span>EĞİTİM PAKETİ & SATIN ALMA SEÇENEKLERİ</span>
+        <h3>💳 2X Hızlı Okuma Tam Eğitim Paketi</h3>
+        <p>Tek seferlik ödemeyle tüm aşamalara, egzersizlere ve sertifika programına sınırsız erişin.</p>
+      </div>
+
+      <div class="pricing-showcase-layout">
+        <div class="pricing-main-card">
+          <div class="pricing-popular-ribbon">🏆 TAM KAPSAMLI EĞİTİM PAKETİ</div>
+          <div class="pricing-card-top">
+            <div>
+              <h4>2X Hızlı Okuma ve Anlama Eğitimi</h4>
+              <p>İlkokul, Ortaokul, Lise (LGS/YKS), Üniversite (KPSS/ALES/DGS) ve Yetişkinler İçin</p>
+            </div>
+            <div class="pricing-amount-box">
+              <span class="old-price-txt">3.200 ₺</span>
+              <div class="current-price-txt">1.900 <small>₺</small></div>
+              <span class="vat-note-txt">KDV Dahil • Tek Ödeme</span>
+            </div>
+          </div>
+
+          <div class="pricing-features-grid">
+            <div class="p-feat-item">✅ <strong>30 Kademeli Aşama</strong> (120 WPM'den 1000 WPM'e)</div>
+            <div class="p-feat-item">✅ <strong>13 İnteraktif Göz & Blok Egzersizi</strong></div>
+            <div class="p-feat-item">✅ <strong>Satır Başı & Satır Sonu Sekme</strong> Antrenmanı</div>
+            <div class="p-feat-item">✅ <strong>Vurgulu İkili & Üçlü Blok</strong> Okuma Sistemi</div>
+            <div class="p-feat-item">✅ <strong>9 Adımda Video Akademi</strong> Eğitim Dersleri</div>
+            <div class="p-feat-item">✅ <strong>5 Soruluk Okuma & Anlama</strong> Ölçüm Modülü</div>
+            <div class="p-feat-item">✅ <strong>Sınıflandırma Bazlı Onaylı PDF</strong> Başarı Sertifikası</div>
+            <div class="p-feat-item">✅ <strong>Web, Tablet ve Mobil</strong> Tüm Cihazlardan Erişim</div>
+          </div>
+
+          <div class="pricing-action-row">
+            <button type="button" class="btn btn-primary pricing-cta-btn" onclick="openPurchaseModal('card')">
+              💳 Kredi / Banka Kartı ile Satın Al (1.900 ₺)
+            </button>
+            <button type="button" class="btn btn-success pricing-cta-btn" onclick="openPurchaseModal('iban')">
+              🏦 Kuveyt Türk Havale / EFT ile Satın Al
+            </button>
+          </div>
+        </div>
+
+        <div class="pricing-options-side">
+          <div class="payment-option-card">
+            <div class="pay-opt-head">
+              <span class="pay-icon">💳</span>
+              <div>
+                <h5>Kredi / Banka Kartı ile Ödeme</h5>
+                <small>256-Bit SSL Güvenli Online Ödeme & Anında Aktivasyon</small>
+              </div>
+            </div>
+            <div class="installment-mini-table">
+              <div class="inst-row"><span>Tek Çekim</span><strong>1.900,00 ₺</strong></div>
+              <div class="inst-row"><span>3 Taksit</span><strong>3 x 633,33 ₺</strong></div>
+              <div class="inst-row"><span>6 Taksit</span><strong>6 x 316,67 ₺</strong></div>
+              <div class="inst-row"><span>12 Taksit</span><strong>12 x 158,33 ₺</strong></div>
+            </div>
+            <button type="button" class="btn btn-primary" style="width:100%; justify-content:center; margin-top:0.5rem;" onclick="openPurchaseModal('card')">Kart ile Hemen Başla</button>
+          </div>
+
+          <div class="payment-option-card">
+            <div class="pay-opt-head">
+              <span class="pay-icon">🏦</span>
+              <div>
+                <h5>Kuveyt Türk Havale / EFT / FAST</h5>
+                <small>Alıcı: Serhat Nehir • 7/24 FAST ile Anında Onay</small>
+              </div>
+            </div>
+            <p style="font-size:0.75rem; color:var(--text-secondary); line-height:1.45;">
+              <strong>Kuveyt Türk Katılım Bankası A.Ş.</strong><br/>
+              IBAN: <strong style="color:var(--accent);">TR21 0020 5000 0912 2742 6000 01</strong>
+            </p>
+            <button type="button" class="btn" style="width:100%; justify-content:center; margin-top:0.45rem;" onclick="openPurchaseModal('iban')">IBAN Kopyala & Bildir</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VİDEO AKADEMİ -->
+    <div class="hizligo-section" id="videoEducationSection">
+      <div class="section-head">
+        <span>VİDEO AKADEMİ</span>
+        <h3>🎬 Hızlı Okuma Video Eğitimi</h3>
+        <p>Soldaki listeden dersi seçin, sağdaki dikey ekranda hemen izleyin.</p>
+      </div>
+
+      <div class="video-studio-layout">
+        <div class="video-playlist-panel">
+          <div class="playlist-header">
+            <span>📚 Eğitim Oynatma Listesi</span>
+            <span class="playlist-count" id="playlistTotalBadge">Yükleniyor...</span>
+          </div>
+          <div class="playlist-items-container" id="videoPlaylistContainer"></div>
+        </div>
+
+        <div class="video-vertical-player-panel">
+          <div class="vertical-player-header">
+            <span class="v-order-badge" id="activeVideoBadge">Ders 1</span>
+            <h4 id="activeVideoTitle">Eğitim videoları yükleniyor...</h4>
+          </div>
+          <div class="vertical-phone-frame">
+            <div class="vertical-video-container" id="verticalVideoStage"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SIKÇA SORULAN SORULAR -->
+    <div class="hizligo-section" id="faqSection">
+      <div class="section-head">
+        <span>MERAK EDİLENLER</span>
+        <h3>❓ Sıkça Sorulan Sorular (SSS)</h3>
+        <p>2X Hızlı Okuma ve Okülomotor Göz Eğitimi sistemi hakkında en çok merak edilen sorular ve yanıtları.</p>
+      </div>
+
+      <div class="faq-accordion-list" id="faqAccordionContainer"></div>
+    </div>
+
+    <!-- ANA SAYFA EN ALT: YASAL METİNLER -->
+    <footer class="home-bottom-developer">
+      <div class="legal-links-bar">
+        <button type="button" class="legal-link-btn" onclick="openLegalModal('kvkk', false)">📜 KVKK Aydınlatma Metni</button>
+        <span>•</span>
+        <button type="button" class="legal-link-btn" onclick="openLegalModal('terms', false)">⚖️ Kullanım ve Hizmet Koşulları</button>
+        <span>•</span>
+        <button type="button" class="legal-link-btn" onclick="openLegalModal('privacy', false)">🔒 Gizlilik Politikası</button>
+        <span>•</span>
+        <button type="button" class="legal-link-btn" onclick="openLegalModal('sales', false)">💳 Mesafeli Satış Sözleşmesi</button>
+      </div>
+
+      <div class="home-dev-row">
+        <img src="sn.png" alt="Serhat Nehir Logo" class="home-bottom-dev-logo" onerror="this.style.opacity='0.3'" />
+        <div class="home-dev-text-col">
+          <span class="home-bottom-dev-text">Geliştirici <strong>Serhat Nehir</strong></span>
+          <span class="home-bottom-copyright">Tüm Hakları Saklıdır © 2026</span>
+        </div>
+      </div>
+    </footer>
+  </section>
+
+  <!-- 2. GÖRÜNÜM: ANTRENMAN VE OKUMA TESTİ SAYFASI -->
+  <div class="app-layout" id="trainingPageView" style="display:none;">
+    <!-- SOL MENÜ -->
+    <div class="sidebar-shell auth-only-el" id="leftSidebarShell">
+      <aside class="sidebar" id="appSidebar">
+        <div class="stage-list-header">
+          <span>📚 MODÜLLER & 30 AŞAMA</span>
+          <span id="completedStagesCount">0/30</span>
+        </div>
+        <div class="stages-container" id="stagesListContainer"></div>
+
+        <div class="dev-badge-box" title="Geliştirici: Serhat Nehir">
+          <img src="sn.png" alt="SN Logo" class="dev-logo-img" onerror="this.style.opacity='0.25'" />
+          <div class="dev-info-lines">
+            <span class="dev-label">Geliştirici</span>
+            <span class="dev-name">Serhat Nehir</span>
+            <span class="dev-copy">Tüm Hakları Saklıdır © 2026</span>
+          </div>
+        </div>
+      </aside>
+      <button type="button" class="sidebar-toggle-btn auth-only-el" id="sidebarToggleBtn" onclick="toggleSidebar()" title="Sol Menüyü Gizle / Göster">☰</button>
+    </div>
+
+    <!-- ÜST AŞAMA KUTUSUNU (STAGE BANNER) GİZLE / GÖSTER DÜĞMESİ -->
+    <button type="button" class="top-banner-toggle-btn auth-only-el" id="topBannerToggleBtn" onclick="toggleTopBanner()" title="Üst Aşama Bilgisini Gizle / Göster">▴</button>
+
+    <!-- ORTA ÇALIŞMA ALANI -->
+    <main class="workspace" id="mainWorkspace"></main>
+
+    <!-- SAĞ EGZERSİZ MENÜSÜ (14 EGZERSİZ) -->
+    <div class="right-sidebar-shell auth-only-el" id="rightSidebarShell">
+      <button type="button" class="right-sidebar-toggle-btn auth-only-el" id="rightSidebarToggleBtn" onclick="toggleRightSidebar()" title="Sağ Egzersiz Menüsünü Gizle / Göster">☰</button>
+      <aside class="right-sidebar" id="appRightSidebar">
+        <div class="stage-list-header">
+          <span>🎯 AŞAMA ANTRENMANLARI</span>
+          <span id="rightExDoneRatio">0/13</span>
+        </div>
+        <div class="right-exercise-list" id="rightExerciseListContainer"></div>
+      </aside>
+    </div>
+  </div>
+
+  <!-- MOBİL ALT ÇUBUK -->
+  <nav class="mobile-bottom-nav auth-only-el" id="mobileBottomNav">
+    <button type="button" class="m-nav-btn" onclick="switchView('training')"><span>🎯</span><small>Antrenman</small></button>
+    <button type="button" class="m-nav-btn" onclick="toggleSidebar()"><span>📚</span><small>Aşamalar</small></button>
+    <button type="button" class="m-nav-btn" onclick="toggleRightSidebar()"><span>⚡</span><small>Egzersizler</small></button>
+    <button type="button" class="m-nav-btn" onclick="openAppearanceModal()"><span>🎨</span><small>Görünüm Ayarları</small></button>
+    <button type="button" class="m-nav-btn" onclick="openProfileModal()"><span>👤</span><small>Profilim</small></button>
+  </nav>
+
+  <!-- SATIN ALMA VE ÖDEME MODALI (1.900 TL & KUVEYT TÜRK IBAN) -->
+  <div class="modal-overlay" id="purchaseModal">
+    <div class="modal-box" style="max-width:620px; text-align:left;">
+      <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border); padding-bottom:0.65rem;">
+        <div>
+          <h3 style="font-size:1.18rem;">💳 2X Hızlı Okuma Eğitimi Satın Al</h3>
+          <p style="font-size:0.76rem; color:var(--text-secondary);">Eğitim Ücreti: <strong style="color:var(--accent); font-size:0.9rem;">1.900,00 ₺</strong> (KDV Dahil • Tam Paket)</p>
+        </div>
+        <button type="button" class="btn" onclick="closePurchaseModal()">✕</button>
+      </div>
+
+      <div class="checkout-tabs">
+        <button type="button" class="checkout-tab-btn active" id="payTabCardBtn" onclick="switchPaymentTab('card')">💳 Kredi / Banka Kartı</button>
+        <button type="button" class="checkout-tab-btn" id="payTabIbanBtn" onclick="switchPaymentTab('iban')">🏦 Havale / EFT (IBAN)</button>
+      </div>
+
+      <div id="paymentCardSection" class="auth-form" style="margin-top:0.75rem;">
+        <div class="auth-grid-2">
+          <div class="auth-field"><label>Öğrenci Ad Soyad</label><input type="text" id="payFullName" placeholder="Örn: Serhat Nehir" /></div>
+          <div class="auth-field"><label>E-Posta Adresi</label><input type="email" id="payEmail" placeholder="ornek@eposta.com" /></div>
+        </div>
+
+        <div class="auth-grid-2">
+          <div class="auth-field"><label>Kart Üzerindeki İsim</label><input type="text" id="cardHolderName" placeholder="AD SOYAD" /></div>
+          <div class="auth-field">
+            <label>Taksit Seçeneği</label>
+            <select id="cardInstallmentSelect" style="width:100%; padding:0.52rem;">
+              <option value="1">Tek Çekim — 1.900,00 ₺</option>
+              <option value="3">3 Taksit — 3 x 633,33 ₺ (Toplam: 1.900 ₺)</option>
+              <option value="6">6 Taksit — 6 x 316,67 ₺ (Toplam: 1.900 ₺)</option>
+              <option value="12">12 Taksit — 12 x 158,33 ₺ (Toplam: 1.900 ₺)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="auth-field">
+          <label>Kart Numarası (16 Hane)</label>
+          <input type="text" id="cardNumberInput" maxlength="19" placeholder="0000 0000 0000 0000" oninput="formatCardNumberInput(this)" />
+        </div>
+
+        <div class="auth-grid-2">
+          <div class="auth-field"><label>Son Kullanma Tarihi (AA/YY)</label><input type="text" id="cardExpiryInput" maxlength="5" placeholder="AA/YY" oninput="formatCardExpiryInput(this)" /></div>
+          <div class="auth-field"><label>CVV / Güvenlik Kodu</label><input type="password" id="cardCvvInput" maxlength="4" placeholder="•••" /></div>
+        </div>
+
+        <div style="font-size:0.72rem; color:var(--text-secondary);">
+          🔒 256-Bit SSL şifreleme ve 3D Secure güvencesiyle korunmaktadır. Ödeme tamamlandığında <a href="javascript:void(0)" onclick="openLegalModal('sales', false)" style="color:var(--accent); font-weight:700;">Mesafeli Satış Sözleşmesi</a> kapsamında hesabınız anında açılır.
+        </div>
+
+        <div id="purchaseFeedbackMsg" style="font-size:0.8rem; font-weight:700; min-height:20px; text-align:center;"></div>
+
+        <div style="display:flex; gap:0.5rem;">
+          <button type="button" class="btn btn-success" style="flex:1; justify-content:center; padding:0.7rem; font-size:0.9rem; font-weight:800;" onclick="handleCardCheckoutSubmit()">
+            🔒 1.900,00 ₺ Güvenli Öde ve Eğitime Başla
+          </button>
+          <button type="button" class="btn" onclick="closePurchaseModal()">İptal</button>
+        </div>
+      </div>
+
+      <!-- HAVALE / EFT (KUVEYT TÜRK KATILIM BANKASI A.Ş.) -->
+      <div id="paymentIbanSection" class="auth-form" style="display:none; margin-top:0.75rem;">
+        <div class="iban-info-card">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.4rem;">
+            <span style="font-size:0.75rem; font-weight:800; color:var(--text-secondary);">HESAP SAHİBİ</span>
+            <strong style="font-size:0.94rem; color:var(--text-primary);">Serhat Nehir</strong>
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.4rem;">
+            <span style="font-size:0.75rem; font-weight:800; color:var(--text-secondary);">BANKA</span>
+            <strong style="font-size:0.88rem; color:var(--accent);">Kuveyt Türk Katılım Bankası A.Ş.</strong>
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.4rem;">
+            <span style="font-size:0.75rem; font-weight:800; color:var(--text-secondary);">ÖDENECEK TUTAR</span>
+            <strong style="font-size:1.05rem; color:var(--success);">1.900,00 ₺ (KDV Dahil)</strong>
+          </div>
+          <div style="border-top:1px dashed var(--border); padding-top:0.55rem; margin-top:0.35rem;">
+            <div style="font-size:0.72rem; font-weight:800; color:var(--text-secondary); margin-bottom:0.25rem;">IBAN NUMARASI (7/24 FAST / EFT)</div>
+            <div style="display:flex; gap:0.45rem; align-items:center;">
+              <input type="text" id="ibanCopyInput" value="TR21 0020 5000 0912 2742 6000 01" readonly style="flex:1; font-weight:800; letter-spacing:0.04em; color:var(--accent);" />
+              <button type="button" class="btn btn-primary" onclick="copyIbanText()">📋 Kopyala</button>
+            </div>
+          </div>
+        </div>
+
+        <p style="font-size:0.76rem; color:var(--text-secondary); line-height:1.5;">
+          💡 Havale/FAST açıklama kısmına <strong>Ad Soyad ve E-Posta</strong> adresinizi yazmanız yeterlidir. Ödeme sonrası aşağıdaki düğmeden kayıt oluşturarak hemen başlayabilirsiniz.
+        </p>
+
+        <div id="ibanFeedbackMsg" style="font-size:0.8rem; font-weight:700; color:var(--success); min-height:18px; text-align:center;"></div>
+
+        <div style="display:flex; gap:0.5rem;">
+          <button type="button" class="btn btn-primary" style="flex:1; justify-content:center; padding:0.65rem;" onclick="closePurchaseModal(); openRegisterModal();">
+            ✅ Ödemeyi Yaptım / Öğrenci Kaydımı Oluştur
+          </button>
+          <button type="button" class="btn" onclick="closePurchaseModal()">Kapat</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 1. PROFİLİM MODALI -->
+  <div class="modal-overlay" id="profileModal">
+    <div class="modal-box" style="max-width:520px; text-align:left;">
+      <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border); padding-bottom:0.65rem;">
+        <div>
+          <h3 style="font-size:1.15rem;">👤 Profilim</h3>
+          <p style="font-size:0.76rem; color:var(--text-secondary);">Kişisel bilgilerinizi, e-posta adresinizi veya şifrenizi güncelleyebilirsiniz.</p>
+        </div>
+        <button type="button" class="btn" onclick="closeProfileModal()">✕</button>
+      </div>
+
+      <div class="auth-form" style="margin-top:0.75rem;">
+        <div style="display:flex; align-items:center; gap:0.85rem; background:var(--bg-card); border:1px solid var(--border); padding:0.65rem 0.9rem; border-radius:12px;">
+          <div class="gender-avatar male" id="profAvatarPreview" style="width:48px; height:48px;"></div>
+          <div>
+            <div style="font-size:0.72rem; color:var(--text-secondary); font-weight:700;">KAYITLI E-POSTA HESABI</div>
+            <div style="font-size:0.95rem; font-weight:900; color:var(--accent);" id="profEmailHeaderDisplay">ornek@eposta.com</div>
+          </div>
+        </div>
+
+        <div class="auth-grid-2">
+          <div class="auth-field"><label>Ad</label><input type="text" id="profFirstName" /></div>
+          <div class="auth-field"><label>Soyad</label><input type="text" id="profLastName" /></div>
+        </div>
+
+        <div class="auth-field">
+          <label>E-Posta Adresi</label>
+          <input type="email" id="profEmail" placeholder="ornek@eposta.com" autocomplete="email" />
+        </div>
+
+        <div class="auth-grid-2">
+          <div class="auth-field"><label>Doğum Tarihi</label><input type="date" id="profBirthDate" /></div>
+          <div class="auth-field"><label>Şehir</label><input type="text" id="profCity" /></div>
+        </div>
+
+        <div class="auth-field">
+          <label>Seviye</label>
+          <select id="profLevel" style="width:100%; padding:0.52rem;">
+            <option value="İlkokul">İlkokul</option>
+            <option value="Ortaokul">Ortaokul</option>
+            <option value="Lise (LGS/YKS)">Lise (LGS/YKS)</option>
+            <option value="Üniversite (KPSS/ALES/DGS)">Üniversite (KPSS/ALES/DGS)</option>
+            <option value="Yetişkin">Yetişkin</option>
+          </select>
+        </div>
+
+        <div class="auth-field">
+          <label>Cinsiyet (Profil Figürü)</label>
+          <div class="gender-selector">
+            <div class="gender-option selected-male" id="profGenderMale" onclick="selectProfileGender('male')">
+              <span>👨 Erkek</span>
+            </div>
+            <div class="gender-option" id="profGenderFemale" onclick="selectProfileGender('female')">
+              <span>👩 Kadın</span>
+            </div>
+          </div>
+        </div>
+
+        <div style="border-top:1px dashed var(--border); padding-top:0.65rem; margin-top:0.2rem;">
+          <div style="font-size:0.78rem; font-weight:800; color:var(--accent); margin-bottom:0.45rem;" id="profPasswordSectionTitle">🔒 Şifre Değiştir (İsteğe Bağlı)</div>
+          <div class="auth-field" id="profCurrentPasswordField" style="margin-bottom:0.45rem;">
+            <label>Mevcut Şifreniz</label>
+            <input type="password" id="profCurrentPassword" placeholder="Şifre değiştirmek için mevcut şifrenizi girin" />
+          </div>
+          <div class="auth-grid-2">
+            <div class="auth-field"><label>Yeni Şifre</label><input type="password" id="profNewPassword" placeholder="Yeni şifre" /></div>
+            <div class="auth-field"><label>Yeni Şifre (Tekrar)</label><input type="password" id="profNewPasswordConfirm" placeholder="Yeni şifre tekrar" /></div>
+          </div>
+        </div>
+
+        <div id="profileFeedbackMsg" style="font-size:0.78rem; font-weight:700; min-height:18px; text-align:center;"></div>
+
+        <div style="display:flex; gap:0.5rem;">
+          <button type="button" class="btn btn-primary" style="flex:1; justify-content:center; padding:0.65rem;" onclick="saveProfileChanges()">💾 Bilgilerimi Güncelle</button>
+          <button type="button" class="btn" style="padding:0.65rem;" onclick="closeProfileModal()">Kapat</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. HEDEF BELİRLE MODALI -->
+  <div class="modal-overlay" id="goalModal">
+    <div class="modal-box" style="max-width:460px; text-align:left;">
+      <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border); padding-bottom:0.65rem;">
+        <div>
+          <h3 style="font-size:1.15rem;">🎯 Okuma Hızı Hedefi Belirle</h3>
+          <p style="font-size:0.76rem; color:var(--text-secondary);">Okuma hızı hedefini belirle; 2X otomatik hedef seçebilir veya özel WPM hedefi girebilirsiniz.</p>
+        </div>
+        <button type="button" class="btn" onclick="closeGoalModal()">✕</button>
+      </div>
+
+      <div class="auth-form" style="margin-top:0.85rem;">
+        <div class="goal-card">
+          <h3>
+            <span>📊 Mevcut Hedef Durumu</span>
+            <button type="button" class="btn btn-primary" style="padding:0.25rem 0.65rem; font-size:0.74rem;" onclick="set2XGoal()">⚡ Otomatik 2X Hedef</button>
+          </h3>
+          <div class="goal-metrics" style="margin-top:0.6rem;">
+            <div class="goal-metric-item"><div class="lbl">Başlangıç</div><div class="num" id="goalStartWpm">120</div></div>
+            <div class="goal-metric-item"><div class="lbl">Mevcut</div><div class="num" id="goalCurrWpm">120</div></div>
+            <div class="goal-metric-item"><div class="lbl">Hedef</div><div class="num" id="goalTargetWpm">240</div></div>
+          </div>
+          <div class="progress-bar-outer" style="height:10px; margin:0.65rem 0;">
+            <div class="progress-bar-inner" id="goalProgressBar"></div>
+          </div>
+          <div style="display:flex; justify-content:space-between; font-size:0.78rem; font-weight:700; color:var(--text-secondary);">
+            <span id="goalRemainText">Hedefe kalan: -- WPM</span>
+            <span id="goalPercentText" style="color:var(--accent);">%0</span>
+          </div>
+        </div>
+
+        <div class="auth-field" style="margin-top:0.3rem;">
+          <label>Özel Hedef Hız (WPM)</label>
+          <div style="display:flex; gap:0.5rem;">
+            <input type="number" id="customGoalInput" placeholder="Örn: 400" min="100" max="2500" style="flex:1; font-size:0.95rem;" />
+            <button type="button" class="btn btn-success" style="padding:0.55rem 1.1rem;" onclick="saveCustomGoal()">💾 Hedefi Kaydet</button>
+          </div>
+        </div>
+
+        <div id="goalModalFeedback" style="font-size:0.78rem; font-weight:700; color:var(--success); min-height:18px; text-align:center;"></div>
+
+        <div style="display:flex; justify-content:flex-end; border-top:1px solid var(--border); padding-top:0.6rem;">
+          <button type="button" class="btn" onclick="closeGoalModal()">Kapat</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. GÖRÜNÜM AYARLARI MODALI -->
+  <div class="modal-overlay" id="appearanceModal">
+    <div class="modal-box" style="max-width:520px; text-align:left;">
+      <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border); padding-bottom:0.65rem;">
+        <div>
+          <h3 style="font-size:1.15rem;">🎨 Görünüm Ayarları</h3>
+          <p style="font-size:0.76rem; color:var(--text-secondary);">Ekran genişliğini, genel temayı ve alıştırma ekranı rengini özelleştirin.</p>
+        </div>
+        <button type="button" class="btn" onclick="closeAppearanceModal()">✕</button>
+      </div>
+
+      <div class="auth-form" style="margin-top:0.75rem; gap:0.75rem;">
+        <!-- EKRAN GENİŞLİĞİ (20 - 35 CM) -->
+        <div class="goal-card">
+          <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.8rem; font-weight:800; color:var(--text-primary); margin-bottom:0.4rem;">
+            <span>📏 Antrenman Ekranı Genişliği</span>
+            <span id="arenaWidthLabelTxt" style="color:var(--accent); font-size:0.92rem;">22.5 cm</span>
+          </div>
+          <input
+            type="range"
+            id="arenaWidthSlider"
+            min="20"
+            max="35"
+            step="0.5"
+            value="22.5"
+            style="width:100%; accent-color:var(--accent); cursor:pointer;"
+            oninput="setArenaWidthCm(this.value, false)"
+            onchange="setArenaWidthCm(this.value, true)"
+          />
+          <div style="display:flex; justify-content:space-between; font-size:0.72rem; color:var(--text-muted); margin-top:0.25rem;">
+            <span>20 cm (Dar)</span>
+            <span style="cursor:pointer; color:var(--accent); font-weight:700;" onclick="setArenaWidthCm(22.5, true)">Varsayılan (22.5 cm)</span>
+            <span>35 cm (Geniş)</span>
+          </div>
+        </div>
+
+        <!-- GENEL UYGULAMA RENK TEMASI SEÇİMİ -->
+        <div class="goal-card">
+          <div style="font-size:0.8rem; font-weight:800; color:var(--text-primary); margin-bottom:0.45rem;">🎨 Genel Uygulama Teması</div>
+          <div class="theme-group">
+            <button type="button" class="theme-btn" data-t="dark" onclick="setTheme('dark')" title="Koyu Tema">🌙 Koyu</button>
+            <button type="button" class="theme-btn active" data-t="light" onclick="setTheme('light')" title="Beyaz Tema">☀️ Açık</button>
+            <button type="button" class="theme-btn" data-t="sepia" onclick="setTheme('sepia')" title="Sepya Tema">📜 Sepya</button>
+            <button type="button" class="theme-btn" data-t="forest" onclick="setTheme('forest')" title="Orman Tema">🌲 Orman</button>
+          </div>
+        </div>
+
+        <!-- TEMADAN BAĞIMSIZ ALIŞTIRMA EKRANI RENGİ SEÇİMİ (VARSAYILAN: KİTAP KREMİ) -->
+        <div class="goal-card">
+          <div style="font-size:0.8rem; font-weight:800; color:var(--text-primary); margin-bottom:0.45rem;">🖼️ Alıştırma Ekranı Rengi (Temadan Bağımsız)</div>
+          <div class="arena-color-grid">
+            <button type="button" class="arena-color-btn" data-ac="default" onclick="setArenaCustomColor('default')">🔄 Tema Rengi</button>
+            <button type="button" class="arena-color-btn" data-ac="white" style="background:#ffffff; color:#0f172a;" onclick="setArenaCustomColor('white')">⬜ Saf Beyaz</button>
+            <button type="button" class="arena-color-btn active" data-ac="cream" style="background:#fdf8e7; color:#2c221e;" onclick="setArenaCustomColor('cream')">🟨 Kitap Kremi</button>
+            <button type="button" class="arena-color-btn" data-ac="sepia" style="background:#ebdcb9; color:#2c221e;" onclick="setArenaCustomColor('sepia')">📜 Antik Sepya</button>
+            <button type="button" class="arena-color-btn" data-ac="mint" style="background:#dcfce7; color:#064e3b;" onclick="setArenaCustomColor('mint')">🌿 Göz Yeşili</button>
+            <button type="button" class="arena-color-btn" data-ac="sky" style="background:#e0f2fe; color:#0c4a6e;" onclick="setArenaCustomColor('sky')">❄️ Buz Mavisi</button>
+            <button type="button" class="arena-color-btn" data-ac="slate" style="background:#1e293b; color:#f8fafc;" onclick="setArenaCustomColor('slate')">🌑 Koyu Arduvaz</button>
+            <button type="button" class="arena-color-btn" data-ac="night" style="background:#050811; color:#e2e8f0;" onclick="setArenaCustomColor('night')">⬛ Gece Siyahı</button>
+          </div>
+        </div>
+
+        <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--border); padding-top:0.55rem; gap:0.5rem;">
+          <button type="button" class="btn btn-warning" onclick="resetAppearanceToDefaults()">🔄 Varsayılana Dön</button>
+          <button type="button" class="btn btn-primary" onclick="closeAppearanceModal()">Tamam</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. SAYFA AYARLARI MODALI (SAYFA GEÇİŞ EFEKTİ, SES VE PALMING AYARI) -->
+  <div class="modal-overlay" id="palmingSettingsModal">
+    <div class="modal-box" style="max-width:480px; text-align:left;">
+      <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border); padding-bottom:0.65rem;">
+        <div>
+          <h3 style="font-size:1.15rem;">📖 Sayfa Ayarları</h3>
+          <p style="font-size:0.76rem; color:var(--text-secondary);">Sayfa geçiş efektini, ses ayarlarını ve Palming göz dinlendirme süresini yönetin.</p>
+        </div>
+        <button type="button" class="btn" onclick="closePalmingSettingsModal()">✕</button>
+      </div>
+
+      <div class="auth-form" style="margin-top:0.85rem; gap:0.85rem;">
+        <!-- SAYFA DEĞİŞTİRME EFEKTİ VE SESİ AÇ/KAPAT (VARSAYILAN OLARAK SEÇİLİ DEĞİL) -->
+        <div class="goal-card" style="display:flex; flex-direction:column; gap:0.55rem;">
+          <div style="font-size:0.8rem; font-weight:800; color:var(--text-primary);">📖 Sayfa Geçiş Efekti ve Ses Ayarları</div>
+
+          <label class="toggle-switch-row">
+            <div>
+              <div style="font-size:0.82rem; font-weight:700; color:var(--text-primary);">3B Sayfa Çevirme Efekti</div>
+              <div style="font-size:0.7rem; color:var(--text-secondary);">Antrenman değiştirirken sayfa çevirme animasyonu</div>
+            </div>
+            <input type="checkbox" id="pageTurnEffectChk" onchange="togglePageTurnEffect(this.checked)" />
+          </label>
+
+          <label class="toggle-switch-row">
+            <div>
+              <div style="font-size:0.82rem; font-weight:700; color:var(--text-primary);">Sayfa Çevirme Sesi</div>
+              <div style="font-size:0.7rem; color:var(--text-secondary);">Antrenman geçişlerinde gerçekçi kitap sayfası sesi</div>
+            </div>
+            <input type="checkbox" id="pageTurnSoundChk" onchange="togglePageTurnSound(this.checked)" />
+          </label>
+        </div>
+
+        <!-- PALMING AYARI -->
+        <div class="goal-card">
+          <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.84rem; font-weight:800; color:var(--text-primary); margin-bottom:0.5rem;">
+            <span>👁️ Palming Mola Süresi</span>
+            <span id="palmingDurationLabelTxt" style="color:var(--warning); font-size:1rem;">30 sn</span>
+          </div>
+          <input
+            type="range"
+            id="palmingDurationSlider"
+            min="10"
+            max="120"
+            step="5"
+            value="30"
+            style="width:100%; accent-color:var(--warning); cursor:pointer;"
+            oninput="setPalmingDurationSec(this.value, false)"
+            onchange="setPalmingDurationSec(this.value, true)"
+          />
+          <div style="display:flex; justify-content:space-between; font-size:0.72rem; color:var(--text-muted); margin-top:0.3rem;">
+            <span>10 sn (Kısa)</span>
+            <span style="cursor:pointer; color:var(--warning); font-weight:700;" onclick="setPalmingDurationSec(30, true)">Varsayılan (30 sn)</span>
+            <span>120 sn (Uzun)</span>
+          </div>
+
+          <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:0.4rem; margin-top:0.7rem;">
+            <button type="button" class="btn" style="justify-content:center; font-size:0.74rem;" onclick="setPalmingDurationSec(15, true)">15 sn</button>
+            <button type="button" class="btn" style="justify-content:center; font-size:0.74rem;" onclick="setPalmingDurationSec(30, true)">30 sn</button>
+            <button type="button" class="btn" style="justify-content:center; font-size:0.74rem;" onclick="setPalmingDurationSec(60, true)">60 sn</button>
+            <button type="button" class="btn" style="justify-content:center; font-size:0.74rem;" onclick="setPalmingDurationSec(90, true)">90 sn</button>
+          </div>
+        </div>
+
+        <div style="display:flex; justify-content:flex-end; align-items:center; border-top:1px solid var(--border); padding-top:0.6rem;">
+          <button type="button" class="btn btn-primary" style="width:100%; justify-content:center; padding:0.65rem;" onclick="closePalmingSettingsModal()">💾 Kaydet</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- METİN HAVUZU YÖNETİMİ MODALI -->
+  <div class="modal-overlay" id="textManagerModal">
+    <div class="modal-box" style="max-width:760px; text-align:left;">
+      <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border); padding-bottom:0.65rem; gap:0.5rem;">
+        <div>
+          <h3 style="font-size:1.16rem;">📚 Metin Havuzu Yönetimi</h3>
+        </div>
+        <button type="button" class="btn" onclick="closeTextManagerModal()">✕</button>
+      </div>
+
+      <div class="checkout-tabs" style="grid-template-columns: repeat(2, 1fr); margin-top:0.6rem;">
+        <button type="button" class="checkout-tab-btn active" id="tmTabAddBtn" onclick="switchTextManagerTab('add')">✍️ <span id="tmFormTabTitle">Metin Ekle</span></button>
+        <button type="button" class="checkout-tab-btn" id="tmTabListBtn" onclick="switchTextManagerTab('list')">📋 Metin Düzenle (<span id="tmTotalCountBadge">30</span>)</button>
+      </div>
+
+      <!-- SEKME 1: METİN EKLEME VE DÜZENLEME FORMU -->
+      <div id="tmSectionAdd" class="auth-form" style="margin-top:0.75rem;">
+        <input type="hidden" id="tmEditingTextId" value="" />
+
+        <div id="tmEditModeBanner" style="display:none; align-items:center; justify-content:space-between; background:var(--accent-soft); border:1px solid var(--accent); padding:0.45rem 0.75rem; border-radius:9px; font-size:0.78rem; font-weight:800; color:var(--accent);">
+          <span id="tmEditModeBannerTxt">✏️ Metin Düzenleme Modu Aktif</span>
+          <button type="button" class="btn" style="padding:0.2rem 0.55rem; font-size:0.72rem;" onclick="resetTextManagerForm()">Yeni Metin Eklemeye Dön</button>
+        </div>
+
+        <div class="auth-grid-2">
+          <div class="auth-field">
+            <label>Metin Başlığı</label>
+            <input type="text" id="tmNewTitleInput" placeholder="Örn: Yapay Zeka ve Gelecek" />
+          </div>
+          <div class="auth-field">
+            <label>Hedef Okuma Sınıfı (İsteğe Bağlı)</label>
+            <select id="tmNewTierSelect" style="width:100%; padding:0.52rem;">
+              <option value="all">Tüm Seviyeler İçin Uygun</option>
+              <option value="ilkokul">İlkokul (80–130 kelime/dk)</option>
+              <option value="ortaokul">Ortaokul (130–220 kelime/dk)</option>
+              <option value="lise">Lise (LGS/YKS) (220–350 kelime/dk)</option>
+              <option value="universite">Üniversite (KPSS/ALES/DGS) (350–600 kelime/dk)</option>
+              <option value="yetiskin">Yetişkin (600–1000+ kelime/dk)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="auth-field">
+          <label style="display:flex; justify-content:space-between;">
+            <span>Okuma Metni İçeriği</span>
+            <span id="tmLiveWordCount" style="color:var(--accent); font-weight:800;">0 Kelime</span>
+          </label>
+          <textarea id="tmNewContentInput" rows="6" placeholder="Okuma metnini buraya yazın veya yapıştırın..." style="width:100%; padding:0.65rem; border-radius:9px; border:1px solid var(--border); background:var(--bg-surface); color:var(--text-primary); font-size:0.85rem; line-height:1.55; resize:vertical;" oninput="updateTmWordCount()"></textarea>
+        </div>
+
+        <div class="goal-card" style="padding:0.6rem 0.75rem;">
+          <label class="toggle-switch-row" style="padding:0.35rem 0.5rem;">
+            <div>
+              <div style="font-size:0.8rem; font-weight:800; color:var(--text-primary);">❓ 5 Anlama Sorusunu Manuel Yaz / Düzenle</div>
+              <div style="font-size:0.7rem; color:var(--text-secondary);">İşaretlemezseniz sistem metnin cümlelerinden 5 soruyu otomatik oluşturur.</div>
+            </div>
+            <input type="checkbox" id="tmCustomQuestionsToggle" onchange="toggleTmCustomQuestionsBox(this.checked)" />
+          </label>
+
+          <div id="tmCustomQuestionsContainer" style="display:none; flex-direction:column; gap:0.55rem; margin-top:0.6rem; max-height:210px; overflow-y:auto; padding-right:0.25rem;"></div>
+        </div>
+
+        <div id="tmFeedbackMsg" style="font-size:0.8rem; font-weight:700; min-height:20px; text-align:center;"></div>
+
+        <div style="display:flex; gap:0.5rem;">
+          <button type="button" class="btn btn-success" id="tmSaveSubmitBtn" style="flex:1; justify-content:center; padding:0.68rem; font-weight:800;" onclick="saveCustomTextFromModal()">
+            💾 Metni Kaydet
+          </button>
+          <button type="button" class="btn" onclick="closeTextManagerModal()">Kapat</button>
+        </div>
+      </div>
+
+      <!-- SEKME 2: METİN DÜZENLEME LİSTESİ -->
+      <div id="tmSectionList" class="auth-form" style="display:none; margin-top:0.75rem;">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem;">
+          <div style="display:flex; align-items:center; gap:0.45rem; flex-wrap:wrap;">
+            <span style="font-size:0.76rem; color:var(--text-secondary); font-weight:700;">Seviye Filtresi:</span>
+            <select id="tmListFilterTierSelect" style="padding:0.28rem 0.55rem; font-size:0.75rem;" onchange="renderCustomTextsTable()">
+              <option value="all">Tüm Seviyeler (1100 Metin)</option>
+              <option value="ilkokul">1. Kademe — İlkokul (220 Metin)</option>
+              <option value="ortaokul">2. Kademe — Ortaokul (220 Metin)</option>
+              <option value="lise">3. Kademe — Lise (LGS/YKS) (220 Metin)</option>
+              <option value="universite">4. Kademe — Üniversite (KPSS/ALES/DGS) (220 Metin)</option>
+              <option value="yetiskin">5. Kademe — Yetişkin & İleri Seviye (220 Metin)</option>
+            </select>
+          </div>
+          <button type="button" class="btn btn-primary" style="font-size:0.74rem; padding:0.32rem 0.7rem;" onclick="resetTextManagerForm(); switchTextManagerTab('add');">
+            ➕ Yeni Metin Ekle
+          </button>
+        </div>
+
+        <div class="history-table-wrap" style="max-height:290px;">
+          <table class="history-table">
+            <thead>
+              <tr><th style="width:42px;">#</th><th>Metin Başlığı</th><th style="width:110px;">Seviye</th><th style="width:85px;">Kelime</th><th style="width:150px;">İşlemler</th></tr>
+            </thead>
+            <tbody id="tmTextsTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SADECE ADMİN'E ÖZEL VERİTABANI YÖNETİM MODALI -->
+  <div class="modal-overlay" id="databaseModal">
+    <div class="modal-box" style="max-width:740px; text-align:left;">
+      <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border); padding-bottom:0.65rem;">
+        <div>
+          <h3 style="font-size:1.15rem;">🗄️ Yönetici (Admin) Veritabanı Paneli</h3>
+          <p style="font-size:0.76rem; color:var(--text-secondary);">Firebase Bulut üzerindeki tüm kullanıcı kayıtları otomatik olarak senkronize edilir.</p>
+        </div>
+        <button type="button" class="btn" onclick="closeDatabaseModal()">✕</button>
+      </div>
+      <div class="auth-form" style="margin-top:0.8rem;">
+        <div class="db-summary-bar">
+          <div><strong>Depolama Motoru:</strong> <span style="color:var(--success); font-weight:800;">● Firebase Bulut Veritabanı Aktif</span></div>
+          <div><strong>Kayıtlı Kullanıcı:</strong> <span id="dbTotalUsersCount" style="color:var(--accent); font-weight:800;">0</span></div>
+        </div>
+
+        <div class="history-table-wrap" style="max-height:190px;">
+          <table class="history-table">
+            <thead>
+              <tr><th>E-Posta Adresi</th><th>Ad Soyad</th><th>Seviye</th><th>Şehir / Doğum</th><th>Başlangıç / Mevcut WPM</th><th>Aşama İlerlemesi</th></tr>
+            </thead>
+            <tbody id="dbUsersTableBody"></tbody>
+          </table>
+        </div>
+
+        <div class="sync-section-card" style="margin-top:0.35rem;">
+          <div style="font-size:0.8rem; font-weight:800; color:var(--accent); margin-bottom:0.3rem;">☁️ Merkezi Bulut Veritabanı Bağlantısı (Otomatik Senkronize)</div>
+          <div style="display:flex; gap:0.45rem;">
+            <input type="text" id="cloudApiUrlInput" value="https://xhizliokuma-ca5c9-default-rtdb.firebaseio.com" style="flex:1;" onchange="saveCloudApiUrl()" />
+          </div>
+        </div>
+
+        <div class="sync-section-card" style="margin-top:0.35rem;">
+          <div style="font-size:0.8rem; font-weight:800; color:var(--accent); margin-bottom:0.35rem;">💾 Veritabanı Yedekle / Geri Yükle (.json)</div>
+          <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+            <button type="button" class="btn btn-primary" style="flex:1; justify-content:center;" onclick="exportDatabaseFile()">📥 Veritabanını İndir (.json)</button>
+            <label class="btn btn-success" style="flex:1; justify-content:center; cursor:pointer;">
+              📤 Veritabanı Dosyası Yükle
+              <input type="file" id="importDbFileInput" accept=".json" style="display:none;" onchange="importDatabaseFile(event)" />
+            </label>
+          </div>
+        </div>
+        <div id="dbFeedbackMsg" style="font-size:0.78rem; font-weight:700; min-height:20px; text-align:center;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PALMING SAYACI MODALI -->
+  <div class="modal-overlay" id="palmingModal">
+    <div class="modal-box">
+      <h3 style="margin-bottom:0.5rem;">👁️ Palming (Göz Kaslarını Dinlendirme)</h3>
+      <p style="font-size:0.86rem; color:var(--text-secondary); margin-bottom:1rem;">Avuç içlerinizi birbirine sürterek ısıtın ve gözlerinize baskı yapmadan hafifçe kapatın. Derin nefes alarak karanlığa odaklanın.</p>
+      <div style="font-size:3rem; font-weight:900; color:var(--accent); margin:1rem 0;" id="palmingTimerDisplay">30</div>
+      <button type="button" class="btn btn-primary" onclick="closePalmingModal()">Tamamla ve Kapat</button>
+    </div>
+  </div>
+
+  <!-- GELİŞİM TAKİP RAPORU MODALI -->
+  <div class="modal-overlay" id="progressModal">
+    <div class="modal-box progress-modal-box">
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem; border-bottom:1px solid var(--border); padding-bottom:0.65rem;">
+        <div>
+          <h3 style="font-size:1.18rem;">📈 Gelişim Takip Raporu</h3>
+          <p style="font-size:0.78rem; color:var(--text-secondary);" id="progressUserSubtitle">Öğrenci İlerleme Özeti</p>
+        </div>
+        <div style="display:flex; gap:0.45rem;">
+          <button type="button" class="btn btn-danger" onclick="resetUserProgress()" title="Tüm aşama ilerlemelerinizi ve istatistiklerinizi sıfırlar">🗑️ Gelişimimi Sıfırla</button>
+          <button type="button" class="btn" onclick="closeProgressModal()">✕ Kapat</button>
+        </div>
+      </div>
+      <div class="progress-stats-grid">
+        <div class="p-stat-card"><div class="lbl">Başlangıç Hızı</div><div class="val" id="pStatInitialWpm">120 WPM</div></div>
+        <div class="p-stat-card"><div class="lbl">Mevcut Hız</div><div class="val" id="pStatCurrentWpm">120 WPM</div></div>
+        <div class="p-stat-card"><div class="lbl">Mevcut Sınıf</div><div class="val" id="pStatCurrentClass" style="font-size:0.9rem;">Çok Yavaş</div></div>
+        <div class="p-stat-card"><div class="lbl">Tamamlanan Aşama</div><div class="val" id="pStatStages">0 / 30</div></div>
+      </div>
+      <div class="classification-info-box">
+        <div style="font-size:0.76rem; font-weight:800; color:var(--text-primary); margin-bottom:0.4rem;">📏 Okuma Hızı Sınıflandırmaları ve Sertifika Kademeleri</div>
+        <div class="class-pills-grid" id="speedClassificationsReference"></div>
+      </div>
+      <div style="background:var(--bg-card); border:1px solid var(--border); border-radius:10px; padding:0.75rem; margin-bottom:0.75rem;">
+        <div style="font-size:0.76rem; font-weight:700; color:var(--text-secondary); margin-bottom:0.4rem;">📊 Aşama & WPM Hız Gelişim Grafiği (120 – 1000 WPM)</div>
+        <canvas id="progressChartCanvas" width="640" height="165" style="width:100%; height:auto; display:block;"></canvas>
+      </div>
+      <div>
+        <div style="font-size:0.76rem; font-weight:700; color:var(--text-secondary);">🕒 Son Tamamlanan Antrenman ve Ölçüm Kayıtları</div>
+        <div class="history-table-wrap">
+          <table class="history-table">
+            <thead><tr><th>Tarih / Saat</th><th>Aşama / Modül</th><th>Antrenman</th><th>Hız / Anlama Sonucu</th></tr></thead>
+            <tbody id="progressHistoryTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- KULLANICI GİRİŞ MODALI (ÜYE GİRİŞİ) -->
+  <div class="modal-overlay" id="loginModal">
+    <div class="modal-box">
+      <h3 style="font-size:1.2rem; margin-bottom:0.25rem;">🔑 Üye Girişi</h3>
+      <p style="font-size:0.8rem; color:var(--text-secondary);">E-posta adresiniz ve şifrenizle veya sosyal medya hesabınızla giriş yapın.</p>
+      <div class="auth-form">
+        <div class="social-auth-group">
+          <button type="button" class="btn-social btn-google" onclick="handleSocialAuthClick('google')">
+            <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+            <span>Google Hesabı ile Oturum Aç</span>
+          </button>
+
+          <button type="button" class="btn-social btn-microsoft" onclick="handleSocialAuthClick('microsoft')">
+            <svg width="18" height="18" viewBox="0 0 23 23"><path fill="#f35325" d="M1 1h10v10H1z"/><path fill="#81bc06" d="M12 1h10v10H12z"/><path fill="#05a6f0" d="M1 12h10v10H1z"/><path fill="#ffba08" d="M12 12h10v10H12z"/></svg>
+            <span>Microsoft Hesabı ile Oturum Aç</span>
+          </button>
+
+          <button type="button" class="btn-social btn-facebook" onclick="handleSocialAuthClick('facebook')">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="#ffffff"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+            <span>Facebook Hesabı ile Oturum Aç</span>
+          </button>
+        </div>
+
+        <div class="auth-divider"><span>veya e-posta ve şifre ile</span></div>
+
+        <div class="auth-field">
+          <label>E-Posta Adresi</label>
+          <input type="email" id="loginEmailInput" placeholder="ornek@eposta.com" autocomplete="email" />
+        </div>
+        <div class="auth-field">
+          <label>Şifre</label>
+          <div style="position:relative; display:flex; align-items:center;">
+            <input type="password" id="loginPasswordInput" placeholder="••••••••" autocomplete="current-password" style="padding-right:2.6rem;" onkeydown="if(event.key==='Enter') handleUserLogin()" />
+            <button type="button" onclick="togglePasswordVisibility('loginPasswordInput', this)" title="Şifreyi Göster / Gizle" style="position:absolute; right:8px; background:transparent; border:none; cursor:pointer; font-size:1rem; color:var(--text-secondary);">👁️</button>
+          </div>
+        </div>
+        <div class="remember-me-row">
+          <label><input type="checkbox" id="loginRememberMe" checked /><span>Beni Hatırla</span></label>
+          <a href="javascript:void(0)" onclick="openForgotPasswordModal()" style="font-size:0.76rem; font-weight:700; color:var(--accent); text-decoration:none;">Şifremi Unuttum?</a>
+        </div>
+        <div id="loginErrorMsg" style="font-size:0.78rem; color:var(--danger); min-height:18px; font-weight:600;"></div>
+        <div style="display:flex; gap:0.5rem;">
+          <button type="button" class="btn btn-primary" style="flex:1; justify-content:center; padding:0.65rem;" onclick="handleUserLogin()">🔑 Giriş Yap</button>
+          <button type="button" class="btn btn-success" style="flex:1; justify-content:center; padding:0.65rem;" onclick="switchToRegisterModal()">📝 Kayıt Ol</button>
+        </div>
+        <div style="display:flex; justify-content:flex-end; align-items:center; padding-top:0.5rem; border-top:1px solid var(--border);">
+          <button type="button" class="btn" style="padding:0.28rem 0.85rem; font-size:0.76rem;" onclick="closeLoginModal()">Kapat</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ŞİFREMİ UNUTTUM / E-POSTAYA ŞİFRE GÖNDERME MODALI -->
+  <div class="modal-overlay" id="forgotPasswordModal">
+    <div class="modal-box" style="max-width:440px;">
+      <div style="font-size:2.2rem; margin-bottom:0.2rem;">🔐</div>
+      <h3 style="font-size:1.18rem; margin-bottom:0.25rem;">Şifremi Unuttum</h3>
+      <p style="font-size:0.78rem; color:var(--text-secondary);">Kayıtlı e-posta adresinizi girin; yeni şifreniz ve şifre yenileme bağlantınız e-posta adresinize gönderilecektir.</p>
+
+      <div class="auth-form" style="margin-top:0.75rem;">
+        <div class="auth-field">
+          <label>Kayıtlı E-Posta Adresiniz</label>
+          <input type="email" id="forgotEmailInput" placeholder="ornek@eposta.com" onkeydown="if(event.key==='Enter') sendForgotPasswordCode()" />
+        </div>
+
+        <button type="button" class="btn btn-primary" style="width:100%; justify-content:center; padding:0.65rem; font-weight:800;" onclick="sendForgotPasswordCode()">
+          📩 Şifremi E-Posta Adresime Gönder
+        </button>
+
+        <div id="forgotFeedbackMsg" style="font-size:0.78rem; font-weight:700; min-height:18px; text-align:center;"></div>
+
+        <div style="display:flex; justify-content:space-between; border-top:1px solid var(--border); padding-top:0.5rem;">
+          <button type="button" class="btn" style="font-size:0.75rem;" onclick="closeForgotPasswordModal(); openLoginModal();">← Girişe Dön</button>
+          <button type="button" class="btn" style="font-size:0.75rem;" onclick="closeForgotPasswordModal()">Kapat</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- YENİ ÜYE KAYIT MODALI -->
+  <div class="modal-overlay" id="registerModal">
+    <div class="modal-box">
+      <h3 style="font-size:1.18rem; margin-bottom:0.2rem;">📝 Yeni Üye Kaydı</h3>
+      <p style="font-size:0.78rem; color:var(--text-secondary);">Kayıt tamamlanırken e-posta adresinize 6 haneli doğrulama kodu gönderilir.</p>
+      <div class="gender-avatar male reg-avatar-preview" id="regAvatarPreview"></div>
+      <div class="auth-form">
+        <div class="social-auth-group">
+          <button type="button" class="btn-social btn-google" onclick="handleSocialAuthClick('google')">
+            <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+            <span>Google ile Tek Tıkla Başla</span>
+          </button>
+
+          <button type="button" class="btn-social btn-microsoft" onclick="handleSocialAuthClick('microsoft')">
+            <svg width="18" height="18" viewBox="0 0 23 23"><path fill="#f35325" d="M1 1h10v10H1z"/><path fill="#81bc06" d="M12 1h10v10H12z"/><path fill="#05a6f0" d="M1 12h10v10H1z"/><path fill="#ffba08" d="M12 12h10v10H12z"/></svg>
+            <span>Microsoft ile Tek Tıkla Başla</span>
+          </button>
+
+          <button type="button" class="btn-social btn-facebook" onclick="handleSocialAuthClick('facebook')">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="#ffffff"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+            <span>Facebook ile Tek Tıkla Başla</span>
+          </button>
+        </div>
+
+        <div class="auth-divider"><span>veya e-posta ile kayıt</span></div>
+
+        <div class="auth-grid-2">
+          <div class="auth-field"><label>Ad</label><input type="text" id="regFirstName" placeholder="Örn: Serhat" /></div>
+          <div class="auth-field"><label>Soyad</label><input type="text" id="regLastName" placeholder="Örn: Nehir" /></div>
+        </div>
+
+        <div class="auth-grid-2">
+          <div class="auth-field"><label>E-Posta Adresi</label><input type="email" id="regEmail" placeholder="ornek@eposta.com" autocomplete="email" /></div>
+          <div class="auth-field">
+            <label>Şifre</label>
+            <div style="position:relative; display:flex; align-items:center;">
+              <input type="password" id="regPassword" placeholder="••••••••" autocomplete="new-password" style="padding-right:2.4rem;" />
+              <button type="button" onclick="togglePasswordVisibility('regPassword', this)" title="Şifreyi Göster / Gizle" style="position:absolute; right:6px; background:transparent; border:none; cursor:pointer; font-size:0.95rem; color:var(--text-secondary);">👁️</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="auth-grid-2">
+          <div class="auth-field"><label>Doğum Tarihi</label><input type="date" id="regBirthDate" /></div>
+          <div class="auth-field"><label>Şehir</label><input type="text" id="regCity" placeholder="Örn: Ankara" /></div>
+        </div>
+
+        <div class="auth-field">
+          <label>Seviye</label>
+          <select id="regLevel" style="width:100%; padding:0.52rem;">
+            <option value="İlkokul">İlkokul</option>
+            <option value="Ortaokul">Ortaokul</option>
+            <option value="Lise (LGS/YKS)" selected>Lise (LGS/YKS)</option>
+            <option value="Üniversite (KPSS/ALES/DGS)">Üniversite (KPSS/ALES/DGS)</option>
+            <option value="Yetişkin">Yetişkin</option>
+          </select>
+        </div>
+
+        <div class="auth-field">
+          <label>Cinsiyet (Profil Figürü)</label>
+          <div class="gender-selector">
+            <div class="gender-option selected-male" id="genderOptMale" onclick="selectRegisterGender('male')">
+              <span id="modalMaleSvg" style="display:flex; width:26px; height:26px;"></span><span>Erkek</span>
+            </div>
+            <div class="gender-option" id="genderOptFemale" onclick="selectRegisterGender('female')">
+              <span id="modalFemaleSvg" style="display:flex; width:26px; height:26px;"></span><span>Kadın</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ZORUNLU YASAL ONAY KUTULARI (DIŞARIDAN İŞARETLENEMEZ, İÇİNE GİRİLİNCE İŞARETLENİR) -->
+        <div class="legal-consent-box">
+          <label class="legal-check-row" onclick="event.preventDefault(); openLegalModal('kvkk', true);">
+            <input type="checkbox" id="regKvkkAccept" tabindex="-1" style="pointer-events:none;" />
+            <span>
+              <a href="javascript:void(0)">📜 KVKK Aydınlatma Metni</a>'ni okudum, anladım ve kabul ediyorum.
+            </span>
+          </label>
+          <label class="legal-check-row" onclick="event.preventDefault(); openLegalModal('terms', true);">
+            <input type="checkbox" id="regTermsAccept" tabindex="-1" style="pointer-events:none;" />
+            <span>
+              <a href="javascript:void(0)">⚖️ Kullanım ve Hizmet Koşulları</a>'nı okudum, anladım ve kabul ediyorum.
+            </span>
+          </label>
+          <label class="legal-check-row" onclick="event.preventDefault(); openLegalModal('privacy', true);">
+            <input type="checkbox" id="regPrivacyAccept" tabindex="-1" style="pointer-events:none;" />
+            <span>
+              <a href="javascript:void(0)">🔒 Gizlilik Politikası</a>'nı okudum, anladım ve kabul ediyorum.
+            </span>
+          </label>
+        </div>
+
+        <div id="registerErrorMsg" style="font-size:0.78rem; color:var(--danger); min-height:18px; font-weight:600;"></div>
+        <div style="display:flex; gap:0.5rem;">
+          <button type="button" class="btn btn-success" style="flex:1; justify-content:center; padding:0.65rem;" onclick="handleUserRegister()">📩 Doğrulama Kodu Gönder ve Kaydol</button>
+          <button type="button" class="btn" style="padding:0.65rem;" onclick="closeRegisterModal()">Kapat</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- E-POSTA DOĞRULAMA KODU (OTP) MODALI -->
+  <div class="modal-overlay" id="emailVerifyModal">
+    <div class="modal-box" style="max-width:440px;">
+      <div style="font-size:2.4rem; margin-bottom:0.3rem;">📩</div>
+      <h3 style="font-size:1.18rem; margin-bottom:0.3rem;">E-Posta Doğrulama Kodu</h3>
+      <p style="font-size:0.8rem; color:var(--text-secondary); line-height:1.5;">
+        <strong id="verifyTargetEmailTxt" style="color:var(--accent);">ornek@eposta.com</strong> adresinize gönderilen <strong>6 haneli doğrulama kodunu</strong> aşağıya girin:
+      </p>
+
+      <div class="verify-code-info-banner" id="verifyDispatchNotice"></div>
+
+      <div class="auth-form" style="margin-top:0.75rem;">
+        <div class="auth-field">
+          <input
+            type="text"
+            id="emailVerifyCodeInput"
+            maxlength="6"
+            placeholder="• • • • • •"
+            class="otp-code-input"
+            onkeydown="if(event.key==='Enter') confirmEmailVerificationCode()"
+          />
+        </div>
+
+        <div id="verifyCodeErrorMsg" style="font-size:0.78rem; color:var(--danger); min-height:18px; font-weight:700; text-align:center;"></div>
+
+        <div style="display:flex; gap:0.5rem;">
+          <button type="button" class="btn btn-success" style="flex:1; justify-content:center; padding:0.68rem; font-weight:800;" onclick="confirmEmailVerificationCode()">✅ Kodu Doğrula ve Başla</button>
+          <button type="button" class="btn" style="padding:0.68rem;" onclick="resendEmailVerificationCode()">🔄 Tekrar Gönder</button>
+        </div>
+
+        <div style="display:flex; justify-content:flex-end; border-top:1px solid var(--border); padding-top:0.5rem;">
+          <button type="button" class="btn" style="font-size:0.74rem;" onclick="closeEmailVerifyModal()">İptal</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BAŞARI SERTİFİKASI MODALI -->
+  <div class="modal-overlay" id="certificateModal">
+    <div class="modal-box cert-modal-box">
+      <h3 style="font-size:1.25rem; margin-bottom:0.25rem;" id="certModalMainTitle">🎓 Başarı Sertifikası</h3>
+      <p style="font-size:0.82rem; color:var(--text-secondary);" id="certModalSubtitle">Tebrikler! Okuma Hızı Sınıflandırması eğitim kademesini başarıyla tamamladınız.</p>
+      <canvas id="certCanvas" width="1123" height="794"></canvas>
+      <div style="display:flex; justify-content:center; gap:0.65rem; flex-wrap:wrap; margin-top:0.75rem;">
+        <button type="button" class="btn btn-primary" style="padding:0.6rem 1.2rem; font-size:0.88rem;" onclick="downloadCertificateAsPDF()">📥 PDF Olarak İndir</button>
+        <button type="button" class="btn btn-success" style="padding:0.6rem 1.2rem; font-size:0.88rem;" onclick="printCertificateAsPDF()">🖨️ Yazdır</button>
+        <button type="button" class="btn" style="padding:0.6rem 1rem;" onclick="closeCertificateModal()">Kapat</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4 AYRI YASAL METİN PENCERESİ -->
+  <div class="modal-overlay legal-foreground-overlay" id="kvkkModal" style="z-index:260;">
+    <div class="modal-box" style="max-width:740px; text-align:left;">
+      <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border); padding-bottom:0.65rem; gap:0.5rem;">
+        <h3 style="font-size:1.12rem;" id="kvkkModalTitle">📜 6698 Sayılı KVKK Kapsamında Aydınlatma Metni</h3>
+      </div>
+      <div class="legal-modal-content" id="kvkkModalBody"></div>
+      <div id="kvkkModalError" style="font-size:0.76rem; color:var(--danger); font-weight:700; min-height:18px; margin-top:0.35rem; text-align:right;"></div>
+      <div style="display:flex; justify-content:flex-end; align-items:center; gap:0.5rem; border-top:1px solid var(--border); padding-top:0.65rem; margin-top:0.25rem;">
+        <button type="button" class="btn btn-success" id="kvkkConfirmBtn" style="display:none;" onclick="confirmSpecificLegalModal('kvkk')">✅ Okudum, Anladım</button>
+        <button type="button" class="btn" onclick="closeSpecificLegalModal('kvkk')">Kapat</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay legal-foreground-overlay" id="termsModal" style="z-index:260;">
+    <div class="modal-box" style="max-width:740px; text-align:left;">
+      <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border); padding-bottom:0.65rem; gap:0.5rem;">
+        <h3 style="font-size:1.12rem;" id="termsModalTitle">⚖️ Kullanım ve Hizmet Koşulları Sözleşmesi</h3>
+      </div>
+      <div class="legal-modal-content" id="termsModalBody"></div>
+      <div id="termsModalError" style="font-size:0.76rem; color:var(--danger); font-weight:700; min-height:18px; margin-top:0.35rem; text-align:right;"></div>
+      <div style="display:flex; justify-content:flex-end; align-items:center; gap:0.5rem; border-top:1px solid var(--border); padding-top:0.65rem; margin-top:0.25rem;">
+        <button type="button" class="btn btn-success" id="termsConfirmBtn" style="display:none;" onclick="confirmSpecificLegalModal('terms')">✅ Okudum, Anladım</button>
+        <button type="button" class="btn" onclick="closeSpecificLegalModal('terms')">Kapat</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay legal-foreground-overlay" id="privacyModal" style="z-index:260;">
+    <div class="modal-box" style="max-width:740px; text-align:left;">
+      <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border); padding-bottom:0.65rem; gap:0.5rem;">
+        <h3 style="font-size:1.12rem;" id="privacyModalTitle">🔒 Gizlilik ve Kişisel Verileri Koruma Politikası</h3>
+      </div>
+      <div class="legal-modal-content" id="privacyModalBody"></div>
+      <div id="privacyModalError" style="font-size:0.76rem; color:var(--danger); font-weight:700; min-height:18px; margin-top:0.35rem; text-align:right;"></div>
+      <div style="display:flex; justify-content:flex-end; align-items:center; gap:0.5rem; border-top:1px solid var(--border); padding-top:0.65rem; margin-top:0.25rem;">
+        <button type="button" class="btn btn-success" id="privacyConfirmBtn" style="display:none;" onclick="confirmSpecificLegalModal('privacy')">✅ Okudum, Anladım</button>
+        <button type="button" class="btn" onclick="closeSpecificLegalModal('privacy')">Kapat</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay legal-foreground-overlay" id="salesModal" style="z-index:260;">
+    <div class="modal-box" style="max-width:740px; text-align:left;">
+      <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border); padding-bottom:0.65rem; gap:0.5rem;">
+        <h3 style="font-size:1.12rem;" id="salesModalTitle">💳 Mesafeli Satış Sözleşmesi ve İptal / İade Koşulları</h3>
+      </div>
+      <div class="legal-modal-content" id="salesModalBody"></div>
+      <div style="display:flex; justify-content:flex-end; align-items:center; gap:0.5rem; border-top:1px solid var(--border); padding-top:0.65rem; margin-top:0.25rem;">
+        <button type="button" class="btn" onclick="closeSpecificLegalModal('sales')">Kapat</button>
+      </div>
+    </div>
+  </div>
+
+  <iframe id="pdfPrintFrame" style="position:fixed; right:0; bottom:0; width:0; height:0; border:0; visibility:hidden;"></iframe>
+
+  <script src="metinler.db"></script>
+  <script src="script_core.js"></script>
+  <script src="script_data.js"></script>
+  <script src="script_stages.js"></script>
+  <script src="script_exercises.js"></script>
+</body>
+</html>
